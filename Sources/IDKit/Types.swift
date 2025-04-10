@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Proof: Codable, Sendable {
+public struct Proof: Codable, Sendable, Equatable {
 	/// The strongest credential with which a user has been verified.
 	public enum CredentialType: String, Codable, Sendable {
 		case orb
