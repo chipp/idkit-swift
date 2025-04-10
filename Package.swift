@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
 	name: "idkit-swift",
-	platforms: [.macOS(.v13), .iOS(.v15), .watchOS(.v8), .tvOS(.v15)],
+	platforms: [.macOS(.v13), .iOS(.v14), .watchOS(.v8), .tvOS(.v15)],
 	products: [
 		.library(name: "IDKit", targets: ["IDKit"]),
 		.library(name: "IDKitCore", targets: ["IDKitCore"]),
