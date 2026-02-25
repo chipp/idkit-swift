@@ -2759,6 +2759,23 @@ public enum Preset: Equatable, Hashable {
          * Can be a plain string or hex-encoded ABI value (with 0x prefix).
          */signal: String?
     )
+    /**
+     * Selfie check verification
+     *
+     * Requests face credentials only, with optional signal.
+     * The signal can be either a plain string or a hex-encoded ABI value (with 0x prefix).
+     *
+     * This preset requests face credentials in v4 constraints and maps to
+     * legacy `verification_level = face` for v3 compatibility fields.
+     *
+     * Preview: Selfie Check is currently in preview. Contact us if you need it enabled.
+     */
+    case selfieCheck(
+        /**
+         * Optional signal to include in the proof.
+         * Can be a plain string or hex-encoded ABI value (with 0x prefix).
+         */signal: String?
+    )
 
 
 
@@ -2787,6 +2804,9 @@ public struct FfiConverterTypePreset: FfiConverterRustBuffer {
         case 3: return .documentLegacy(signal: try FfiConverterOptionString.read(from: &buf)
         )
         
+        case 4: return .selfieCheck(signal: try FfiConverterOptionString.read(from: &buf)
+        )
+        
         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
@@ -2807,6 +2827,11 @@ public struct FfiConverterTypePreset: FfiConverterRustBuffer {
         
         case let .documentLegacy(signal):
             writeInt(&buf, Int32(3))
+            FfiConverterOptionString.write(signal, into: &buf)
+            
+        
+        case let .selfieCheck(signal):
+            writeInt(&buf, Int32(4))
             FfiConverterOptionString.write(signal, into: &buf)
             
         }
