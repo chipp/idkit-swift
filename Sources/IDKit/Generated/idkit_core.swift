@@ -605,6 +605,17 @@ public static func any(nodes: [ConstraintNode]) -> ConstraintNode  {
 }
     
     /**
+     * Creates an "enumerate" constraint node
+     */
+public static func enumerate(nodes: [ConstraintNode]) -> ConstraintNode  {
+    return try!  FfiConverterTypeConstraintNode_lift(try! rustCall() {
+    uniffi_idkit_fn_constructor_constraintnode_enumerate(
+        FfiConverterSequenceTypeConstraintNode.lower(nodes),$0
+    )
+})
+}
+    
+    /**
      * Deserializes a constraint node from JSON
      *
      * # Errors
@@ -3596,6 +3607,9 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_idkit_checksum_constructor_constraintnode_any() != 35991) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_idkit_checksum_constructor_constraintnode_enumerate() != 36816) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_idkit_checksum_constructor_constraintnode_from_json() != 8810) {

@@ -263,6 +263,11 @@ uint64_t uniffi_idkit_fn_constructor_constraintnode_all(RustBuffer nodes, RustCa
 uint64_t uniffi_idkit_fn_constructor_constraintnode_any(RustBuffer nodes, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_IDKIT_FN_CONSTRUCTOR_CONSTRAINTNODE_ENUMERATE
+#define UNIFFI_FFIDEF_UNIFFI_IDKIT_FN_CONSTRUCTOR_CONSTRAINTNODE_ENUMERATE
+uint64_t uniffi_idkit_fn_constructor_constraintnode_enumerate(RustBuffer nodes, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_IDKIT_FN_CONSTRUCTOR_CONSTRAINTNODE_FROM_JSON
 #define UNIFFI_FFIDEF_UNIFFI_IDKIT_FN_CONSTRUCTOR_CONSTRAINTNODE_FROM_JSON
 uint64_t uniffi_idkit_fn_constructor_constraintnode_from_json(RustBuffer json, RustCallStatus *_Nonnull out_status
@@ -944,6 +949,12 @@ uint16_t uniffi_idkit_checksum_constructor_constraintnode_all(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_IDKIT_CHECKSUM_CONSTRUCTOR_CONSTRAINTNODE_ANY
 #define UNIFFI_FFIDEF_UNIFFI_IDKIT_CHECKSUM_CONSTRUCTOR_CONSTRAINTNODE_ANY
 uint16_t uniffi_idkit_checksum_constructor_constraintnode_any(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_IDKIT_CHECKSUM_CONSTRUCTOR_CONSTRAINTNODE_ENUMERATE
+#define UNIFFI_FFIDEF_UNIFFI_IDKIT_CHECKSUM_CONSTRUCTOR_CONSTRAINTNODE_ENUMERATE
+uint16_t uniffi_idkit_checksum_constructor_constraintnode_enumerate(void
     
 );
 #endif
