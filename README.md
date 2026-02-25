@@ -68,12 +68,9 @@ case .failure(let error):
 
 ## API
 
-| Entry point                             | Description                           |
-| --------------------------------------- | ------------------------------------- |
-| `IDKit.request(config:)`                | Build and send a verification request |
-| `IDKit.createSession(config:)`          | Create a verification session         |
-| `IDKit.proveSession(sessionId:config:)` | Prove an existing session             |
-| `IDKit.hashSignal(_:)`                  | Hash a signal (`String` or `Data`)    |
+| Entry point              | Description                           |
+| ------------------------ | ------------------------------------- |
+| `IDKit.request(config:)` | Build and send a verification request |
 
 The request object exposes:
 
