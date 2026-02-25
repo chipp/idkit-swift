@@ -1,154 +1,24 @@
-<a href="https://docs.worldcoin.org/">
+<a href="https://docs.world.org/world-id">
   <img src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-header.png" alt="" />
 </a>
 
-# IDKit (Swift)
+# IDKit Swift SDK
 
-The `IDKit` library provides a simple Swift interface for prompting users for World ID proofs. For other platforms, check out the following:
-- [Kotlin](https://github.com/worldcoin/idkit-kotlin)
-- [React and React Native](https://github.com/worldcoin/idkit-js)
+> **Note:** This repository is the Swift Package Manager (SPM) mirror for the [worldcoin/idkit](https://github.com/worldcoin/idkit) monorepo (`swift/` directory). The Swift sources are generated via [UniFFI](https://mozilla.github.io/uniffi-rs/), giving Swift clients the exact same surface area as the Rust core. Please open issues and pull requests in the [main repository](https://github.com/worldcoin/idkit).
 
-## Usage
-There are three main ways to use `idkit-swift`:
+Swift SDK for [World ID](https://docs.world.org/world-id) verification.
 
-1. To request proof of a minimum verification level. For example, if you ask for proof with a minimum level `document` proof, you may get a `document`, `secure_document` or `orb` proof, depending on the highest verification level that the user has.
+## Requirements
 
-   For more on the concept of verification levels, see [this page](https://docs.world.org/world-id/concepts).
-2. To request proof of verification with specific credential categories. For example, if you ask for a `secure_document` proof, you will only receive a proof if the user verified using a `secure_document` category of credential.
-
-3. To request proof that the user is 18+ years of age. The World App only allows `document` or `secure_document` verifications if the user is 18+. Therefore, you can request proof of verification using one or both of these two categories as a proxy of proof that user is 18+ years of age.
-
-All of these require the creation of a `Session` with our hosted [Wallet Bridge service](https://github.com/worldcoin/wallet-bridge), then polling for an update from the World App instance that the user is using to respond to the request. Wallet Bridge acts as a secure relay between your app and World App.
-
-> [!CAUTION]
-> A `Session` instance is valid only for a single proof request, and should not be re-used or cached. It's reasonably inexpensive to create, though does make a network call during initialization. By design, re-using `Sessions` will lead to errors that are user-facing in both World App and your app.
-
-### Proof of Minimum Verification Level
-Use the verification level API when you're interested in getting the strongest human assurance level of a user. 
-
-```swift
-import IDKit
-
- // 1. Initialize your App ID configured in World Developer Portal.
-let appID: AppID
-do {
-    appID = try AppID("your_app_id")
-} catch {
-    // Handle error
-    return
-}
-
-// 2. Create a session with Wallet Bridge. This requests that the user proves they're a human with an orb level verification.
-let session = try await Session(appID, action: "your_action", verificationLevel: .orb)
-
-// 3. Create a universal link compatible with World App.
-let verificationURL = session.verificationURL
-
-// 4. Launch World App with the verification level request.
-UIApplication.shared.open(verificationURL)
-
-// 5. Poll for the result of the request. 
-for try await status in session.status() {
-    switch status {
-    case .waitingForConnection:
-        print("Waiting for the user to scan the QR Code")
-    case .awaitingConfirmation:
-        print("Awaiting user confirmation")
-    case let .confirmed(proof):
-        print("Got proof: \(proof)")
-    case let .failed(error):
-        print("Got error: \(error)")
-    }
-}
-```
-
-### Proof of Specific Credential Categories
-Use this API when you're interested in knowing if a user possesses a credential from one of the specific categories you specify. There are 3 supported categories:
-
-1. `document` - for credentials derived from NFC-enabled documents that can be cloned.
-2. `secure_document` - for credentials derived from NFC-enabled documents that can't be cloned.
-3. `personhood` - for credentials derived from the Orb. 
-
-```swift
-import IDKit
-
-// 1. Initialize your AppID
-let appID: AppID
-do {
-    appID = try AppID("your_app_id")
-} catch {
-    // Handle error
-    return
-}
-
-// 2. Create a session with Wallet Bridge. This session requests both a secure document and personhood proof.
-let session = try await Session(appID, action: "your_action", credentialCategories: [.secure_document, .personhood])
-
-// 3. Create a universal link that opens either World App Clip or World App. This approach significantly speeds up getting proofs from users who don't have a verified World ID.
-let deferredOnboardingURL = try session.deferredOnboardingURL
-
-// 4. Launch World App, or World App Clip, with the credential presentation request.
-UIApplication.shared.open(deferredOnboardingURL)
-
-// 5. Poll for the result of the request. 
-for try await status in session.status() {
-    switch status {
-    case .waitingForConnection:
-        print("Waiting for the user to scan the QR Code")
-    case .awaitingConfirmation:
-        print("Awaiting user confirmation")
-    case let .confirmed(proof):
-        print("Got proof: \(proof)")
-    case let .failed(error):
-        print("Got error: \(error)")
-    }
-}
-```
-
-Note: If `personhood` is requested along with `document` or `secure_document`, a proof of `personhood` will only be returned if the user also has `document` or `secure_document` credentials. Else, the user will be prompted to verify themselves using a `document` or `secure_document` credential first.
-
-### Proof of Age of 18+ Years
-
-The World App only accepts `document` or `secure_document` verifications if the user is 18+ as determined from the user's date of birth stored on the NFC chip of the document. Therefore, you can request proof of verification using these two categories as proof that user is 18+ years of age.
-
-To do this, use credential categories API with the categories set to `[.document, .secure_document]`.  
-
-<!-- WORLD-ID-SHARED-README-TAG:START - Do not remove or modify this section directly -->
-<!-- The contents of this file are inserted to all World ID repositories to provide general context on World ID. -->
-
-## <img align="left" width="28" height="28" src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-world-id.png" alt="" style="margin-right: 0; padding-right: 4px;" /> About World ID
-
-World ID is the privacy-first identity protocol that brings global proof of personhood to the internet. More on World ID in the [announcement blog post](https://worldcoin.org/blog/announcements/introducing-world-id-and-sdk).
-
-World ID lets you seamlessly integrate authentication into your app that verifies accounts belong to real persons through [Sign in with Worldcoin](https://docs.worldcoin.org/id/sign-in). For additional flexibility and cases where you need extreme privacy, [Anonymous Actions](https://docs.worldcoin.org/id/anonymous-actions) lets you verify users in a way that cannot be tracked across verifications.
-
-Follow the [Quick Start](https://docs.worldcoin.org/quick-start) guide for the easiest way to get started.
-
-
------------
-
-# IDKit 4.x.x (Experimental)
-
-This repository is the Swift Package Manager (SPM) mirror for the [IDKit](https://github.com/worldcoin/idkit) Rust SDK. The Swift sources are generated via [UniFFI](https://mozilla.github.io/uniffi-rs/), giving Swift clients the exact same surface area as the Rust core without any bespoke glue code.
-
-## Package Layout
-
-```
-Sources/
-  IDKit/
-    IDKit.swift                // Version metadata
-    Generated/                 // UniFFI-generated Swift + C headers
-IDKitFFI.xcframework           // (added during release automation)
-```
-
-The `Generated/` directory is copied directly from the build artifacts produced in the main `idkit` repository. Release automation then builds the universal Rust library and publishes an `IDKitFFI.xcframework`, which this package references.
+- Xcode 16+
+- iOS 15+ / macOS 12+
 
 ## Installation
 
 Add the package to your project using SwiftPM:
 
 ```swift
-.package(url: "https://github.com/worldcoin/idkit-swift", from: "3.0.0")
+.package(url: "https://github.com/worldcoin/idkit-swift", from: "4.0.2")
 ```
 
 ## Quick Start
@@ -156,78 +26,67 @@ Add the package to your project using SwiftPM:
 ```swift
 import IDKit
 
-let signal = Signal.fromString(s: "user_action_12345")
-let request = Request(credentialType: .orb, signal: signal)
-
-let session = try Session.create(
-    appId: "app_staging_1234567890abcdef",
-    action: "vote",
-    requests: [request]
+// 1. Build RP context from your backend (never expose your signing key on the client)
+let rpContext = try RpContext(
+    rpId: "rp_1234567890abcdef",
+    nonce: backend.nonce,
+    createdAt: backend.createdAt,
+    expiresAt: backend.expiresAt,
+    signature: backend.sig
 )
 
-print("Scan this QR code in World App: \(session.connectUrl())")
+// 2. Configure the request
+let config = IDKitRequestConfig(
+    appId: "app_staging_1234567890abcdef",
+    action: "login",
+    rpContext: rpContext,
+    actionDescription: "Verify Humanity",
+    allowLegacyProofs: true,
+    environment: .production
+    bridgeUrl: nil,
+    overrideConnectBaseUrl: nil,
+)
 
-let proof = try session.waitForProofWithTimeout(timeoutSeconds: 900)
-print("Verified! Nullifier: \(proof.nullifierHash)")
-```
+// 3. Build and send the request
+let request = try IDKit
+    .request(config: config)
+    .preset(orbLegacy(signal: "user-123"))
 
-For manual status polling:
+// 4. Generate a QR code with this URL and scan it with World App
+print("Connector URL:", request.connectorURL)
 
-```swift
-while true {
-    let status = try session.poll()
-    switch status {
-    case .waitingForConnection:
-        print("Waiting for the user to scan…")
-    case .awaitingConfirmation:
-        print("User is confirming…")
-    case .confirmed(let proof):
-        print("Proof ready: \(proof)")
-        break
-    case .failed(let error):
-        fatalError("Verification failed: \(error)")
-    }
-
-    Thread.sleep(forTimeInterval: 3)
+// 5. Poll for the result
+let completion = await request.pollUntilCompletion()
+switch completion {
+case .success(let result):
+    // Verify this in your backend
+    print("Verified", result)
+case .failure(let error):
+    print("Failed", error.rawValue)
 }
 ```
 
-## Releasing New Builds
+## API
 
-Releases are automated from the main [`idkit`](https://github.com/worldcoin/idkit) repo. Merging a PR into `main` with the `release` label triggers the "Publish Swift Release" workflow, which:
+| Entry point                             | Description                           |
+| --------------------------------------- | ------------------------------------- |
+| `IDKit.request(config:)`                | Build and send a verification request |
+| `IDKit.createSession(config:)`          | Create a verification session         |
+| `IDKit.proveSession(sessionId:config:)` | Prove an existing session             |
+| `IDKit.hashSignal(_:)`                  | Hash a signal (`String` or `Data`)    |
 
-1. Builds the universal Rust library and regenerates the Swift bindings.
-2. Produces `IDKitFFI.xcframework` and uploads it as a draft release asset here.
-3. Syncs `Sources/IDKit`, updates `Package.swift` with the new asset URL and checksum, and tags the release.
-4. Publishes the release so Swift Package Manager clients can pull the new binary target.
+The request object exposes:
 
-For local testing you can run `scripts/package-swift.sh` in the main repo and follow the same steps manually.
+- `connectorURL: URL` — URL for the World App QR code
+- `requestID: UUID` — unique request identifier
+- `pollStatusOnce()` — check status once
+- `pollUntilCompletion(options:)` — poll until success or failure (configurable `pollIntervalMs` and `timeoutMs`)
 
-<!-- WORLD-ID-SHARED-README-TAG:START - Do not remove or modify this section directly -->
-<!-- The contents of this file are inserted to all World ID repositories to provide general context on World ID. -->
+## Testing
 
-## <img align="left" width="28" height="28" src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-world-id.png" alt="" style="margin-right: 0; padding-right: 4px;" /> About World ID
+Use the [World ID Simulator](https://simulator.worldcoin.org) for development testing before going to production. Configure IDKit with `environment: .staging` when using the simulator.
 
-World ID is the privacy-first identity protocol that brings global proof of personhood to the internet. More on World ID in the [announcement blog post](https://worldcoin.org/blog/announcements/introducing-world-id-and-sdk).
+## Documentation
 
-World ID lets you seamlessly integrate authentication into your app that verifies accounts belong to real persons through [Sign in with Worldcoin](https://docs.worldcoin.org/id/sign-in). For additional flexibility and cases where you need extreme privacy, [Anonymous Actions](https://docs.worldcoin.org/id/anonymous-actions) lets you verify users in a way that cannot be tracked across verifications.
-
-Follow the [Quick Start](https://docs.worldcoin.org/quick-start) guide for the easiest way to get started.
-
---------------
-
-## 📄 Documentation
-
-All the technical docs for the Wordcoin SDK, World ID Protocol, examples, guides can be found at https://docs.worldcoin.org/
-
-<a href="https://docs.worldcoin.org">
-  <p align="center">
-    <picture align="center">
-      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/visit-documentation-dark.png" height="50px" />
-      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/visit-documentation-light.png" height="50px" />
-      <img />
-    </picture>
-  </p>
-</a>
-
-<!-- WORLD-ID-SHARED-README-TAG:END -->
+- [IDKit Integration Guide](https://docs.world.org/world-id/idkit/integrate)
+- [IDKit Swift Reference](https://docs.world.org/world-id/idkit/swift)
