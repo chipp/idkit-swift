@@ -2728,6 +2728,8 @@ public enum Preset: Equatable, Hashable {
      *
      * Requests orb-verified credentials only, with optional signal.
      * The signal can be either a plain string or a hex-encoded ABI value (with 0x prefix).
+     *
+     * This preset only returns World ID 3.0 proofs. Use it for compatibility with older `IDKit` versions.
      */
     case orbLegacy(
         /**
@@ -2740,6 +2742,8 @@ public enum Preset: Equatable, Hashable {
      *
      * Requests secure document-verified credentials only, with optional signal.
      * The signal can be either a plain string or a hex-encoded ABI value (with 0x prefix).
+     *
+     * This preset only returns World ID 3.0 proofs. Use it for compatibility with older `IDKit` versions.
      */
     case secureDocumentLegacy(
         /**
@@ -2752,6 +2756,8 @@ public enum Preset: Equatable, Hashable {
      *
      * Requests document-verified credentials only, with optional signal.
      * The signal can be either a plain string or a hex-encoded ABI value (with 0x prefix).
+     *
+     * This preset only returns World ID 3.0 proofs. Use it for compatibility with older `IDKit` versions.
      */
     case documentLegacy(
         /**
@@ -2765,12 +2771,11 @@ public enum Preset: Equatable, Hashable {
      * Requests face credentials only, with optional signal.
      * The signal can be either a plain string or a hex-encoded ABI value (with 0x prefix).
      *
-     * This preset requests face credentials in v4 constraints and maps to
-     * legacy `verification_level = face` for v3 compatibility fields.
+     * This preset only returns World ID 3.0 proofs. Use it for compatibility with older `IDKit` versions.
      *
      * Preview: Selfie Check is currently in preview. Contact us if you need it enabled.
      */
-    case selfieCheck(
+    case selfieCheckLegacy(
         /**
          * Optional signal to include in the proof.
          * Can be a plain string or hex-encoded ABI value (with 0x prefix).
@@ -2804,7 +2809,7 @@ public struct FfiConverterTypePreset: FfiConverterRustBuffer {
         case 3: return .documentLegacy(signal: try FfiConverterOptionString.read(from: &buf)
         )
         
-        case 4: return .selfieCheck(signal: try FfiConverterOptionString.read(from: &buf)
+        case 4: return .selfieCheckLegacy(signal: try FfiConverterOptionString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -2830,7 +2835,7 @@ public struct FfiConverterTypePreset: FfiConverterRustBuffer {
             FfiConverterOptionString.write(signal, into: &buf)
             
         
-        case let .selfieCheck(signal):
+        case let .selfieCheckLegacy(signal):
             writeInt(&buf, Int32(4))
             FfiConverterOptionString.write(signal, into: &buf)
             
