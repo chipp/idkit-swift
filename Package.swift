@@ -1,7 +1,7 @@
 // swift-tools-version: 5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
-// Release version: 4.0.3
+// Release version: 4.0.0-dev
 
 import PackageDescription
 
@@ -16,29 +16,19 @@ let package = Package(
             name: "IDKit",
             targets: ["IDKit"])
     ],
-    dependencies: [
-        .package(url: "https://github.com/attaswift/BigInt.git", from: "5.3.0"),
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.9.0"),
-        .package(url: "https://github.com/apple/swift-crypto.git", "1.0.0"..<"4.0.0")
-    ],
     targets: [
         .binaryTarget(
             name: "idkitFFI",
-            url: "https://github.com/worldcoin/idkit-swift/releases/download/4.0.3/IDKitFFI.xcframework.zip",
-            checksum: "04fdefaf6fd5a1bf4ef5ca1557cb4536c6b24ff45b603556149bb4389308cad9"
+            url: "https://github.com/chipp/idkit-swift/releases/download/untagged-39e9510788e0007dd8bc/IDKitFFI.xcframework.zip",
+            checksum: "1019031b801ebdd6c1439e80e3d7ba5eaecd663bba29a2aed044eed5402d846e"
         ),
         .target(
             name: "IDKit",
             dependencies: [
                 "idkitFFI",
-                .product(name: "BigInt", package: "BigInt"),
-                .product(name: "Crypto", package: "swift-crypto"),
-                .product(name: "CryptoSwift", package: "CryptoSwift")
             ],
             path: "Sources/IDKit",
             exclude: [
-                "Generated/idkitFFI.h",
-                "Generated/idkitFFI.modulemap",
                 "Generated/idkit_coreFFI.h",
                 "Generated/idkit_coreFFI.modulemap"
             ]

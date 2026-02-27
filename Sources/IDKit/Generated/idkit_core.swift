@@ -2349,6 +2349,93 @@ public func FfiConverterTypeAppError_lower(_ value: AppError) -> RustBuffer {
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 /**
+ * Credential categories for the legacy v1 credential categories API.
+ *
+ * These are the string values World App expects in the `credential_categories` field.
+ * Distinct from `CredentialType` which is used for v4 constraint trees.
+ */
+
+public enum CredentialCategory: Equatable, Hashable {
+    
+    /**
+     * Credentials that prove personhood (e.g. iris/orb)
+     */
+    case personhood
+    /**
+     * Secure NFC document with active or passive authentication
+     */
+    case secureDocument
+    /**
+     * NFC document without authentication
+     */
+    case document
+
+
+
+}
+
+#if compiler(>=6)
+extension CredentialCategory: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeCredentialCategory: FfiConverterRustBuffer {
+    typealias SwiftType = CredentialCategory
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CredentialCategory {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .personhood
+        
+        case 2: return .secureDocument
+        
+        case 3: return .document
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: CredentialCategory, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .personhood:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .secureDocument:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .document:
+            writeInt(&buf, Int32(3))
+        
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeCredentialCategory_lift(_ buf: RustBuffer) throws -> CredentialCategory {
+    return try FfiConverterTypeCredentialCategory.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeCredentialCategory_lower(_ value: CredentialCategory) -> RustBuffer {
+    return FfiConverterTypeCredentialCategory.lower(value)
+}
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+/**
  * Credential types that can be requested
  */
 
@@ -2781,6 +2868,14 @@ public enum Preset: Equatable, Hashable {
          * Can be a plain string or hex-encoded ABI value (with 0x prefix).
          */signal: String?
     )
+    /**
+     * Credential categories (v1 legacy style)
+     *
+     * Accepts an arbitrary non-empty set of credential categories and sends them as
+     * `credential_categories` in the bridge payload, mirroring the old v1 API.
+     */
+    case credentialCategoriesLegacy(credentialCategories: [CredentialCategory], signal: String?
+    )
 
 
 
@@ -2812,6 +2907,9 @@ public struct FfiConverterTypePreset: FfiConverterRustBuffer {
         case 4: return .selfieCheckLegacy(signal: try FfiConverterOptionString.read(from: &buf)
         )
         
+        case 5: return .credentialCategoriesLegacy(credentialCategories: try FfiConverterSequenceTypeCredentialCategory.read(from: &buf), signal: try FfiConverterOptionString.read(from: &buf)
+        )
+        
         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
@@ -2837,6 +2935,12 @@ public struct FfiConverterTypePreset: FfiConverterRustBuffer {
         
         case let .selfieCheckLegacy(signal):
             writeInt(&buf, Int32(4))
+            FfiConverterOptionString.write(signal, into: &buf)
+            
+        
+        case let .credentialCategoriesLegacy(credentialCategories,signal):
+            writeInt(&buf, Int32(5))
+            FfiConverterSequenceTypeCredentialCategory.write(credentialCategories, into: &buf)
             FfiConverterOptionString.write(signal, into: &buf)
             
         }
@@ -3414,6 +3518,31 @@ fileprivate struct FfiConverterSequenceTypeConstraintNode: FfiConverterRustBuffe
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterTypeConstraintNode.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypeCredentialCategory: FfiConverterRustBuffer {
+    typealias SwiftType = [CredentialCategory]
+
+    public static func write(_ value: [CredentialCategory], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeCredentialCategory.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [CredentialCategory] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [CredentialCategory]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeCredentialCategory.read(from: &buf))
         }
         return seq
     }
