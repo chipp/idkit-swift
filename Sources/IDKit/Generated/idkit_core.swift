@@ -2481,6 +2481,90 @@ public func FfiConverterTypeCredentialType_lower(_ value: CredentialType) -> Rus
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 /**
+ * Identity document type used in [`IdentityAttribute::DocumentType`].
+ */
+
+public enum DocumentType: Equatable, Hashable {
+    
+    /**
+     * Biometric passport (ICAO 9303)
+     */
+    case passport
+    /**
+     * National electronic identity card
+     */
+    case eid
+    /**
+     * Japan's My Number Card
+     */
+    case mnc
+
+
+
+}
+
+#if compiler(>=6)
+extension DocumentType: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeDocumentType: FfiConverterRustBuffer {
+    typealias SwiftType = DocumentType
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DocumentType {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .passport
+        
+        case 2: return .eid
+        
+        case 3: return .mnc
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: DocumentType, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .passport:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .eid:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .mnc:
+            writeInt(&buf, Int32(3))
+        
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeDocumentType_lift(_ buf: RustBuffer) throws -> DocumentType {
+    return try FfiConverterTypeDocumentType.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeDocumentType_lower(_ value: DocumentType) -> RustBuffer {
+    return FfiConverterTypeDocumentType.lower(value)
+}
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+/**
  * Environment for the bridge request
  */
 
@@ -2561,9 +2645,9 @@ public func FfiConverterTypeEnvironment_lower(_ value: Environment) -> RustBuffe
 public enum IdentityAttribute: Equatable, Hashable {
     
     /**
-     * Document type (e.g., "passport", "`id_card`")
+     * The type of identity document presented
      */
-    case documentType(String
+    case documentType(DocumentType
     )
     /**
      * Document number
@@ -2609,7 +2693,7 @@ public struct FfiConverterTypeIdentityAttribute: FfiConverterRustBuffer {
         let variant: Int32 = try readInt(&buf)
         switch variant {
         
-        case 1: return .documentType(try FfiConverterString.read(from: &buf)
+        case 1: return .documentType(try FfiConverterTypeDocumentType.read(from: &buf)
         )
         
         case 2: return .documentNumber(try FfiConverterString.read(from: &buf)
@@ -2637,7 +2721,7 @@ public struct FfiConverterTypeIdentityAttribute: FfiConverterRustBuffer {
         
         case let .documentType(v1):
             writeInt(&buf, Int32(1))
-            FfiConverterString.write(v1, into: &buf)
+            FfiConverterTypeDocumentType.write(v1, into: &buf)
             
         
         case let .documentNumber(v1):

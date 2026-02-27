@@ -19,8 +19,8 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "idkitFFI",
-            url: "https://github.com/chipp/idkit-swift/releases/download/4.0.0-dev-3/IDKitFFI.xcframework.zip",
-            checksum: "eb65f65f2eefc4ba6d78645f357bc493c204e8fc8cb390e87a0d4fed31a7bb48"
+            url: "https://github.com/chipp/idkit-swift/releases/download/4.0.0-dev-4/IDKitFFI.xcframework.zip",
+            checksum: "8ded610f67b9b5311bcd531e3b666be260a05f58c5a395d59da0c22f9aacc516"
         ),
         .target(
             name: "IDKit",
