@@ -419,6 +419,22 @@ fileprivate final class UniffiHandleMap<T>: @unchecked Sendable {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterUInt8: FfiConverterPrimitive {
+    typealias FfiType = UInt8
+    typealias SwiftType = UInt8
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt8 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: UInt8, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
     typealias FfiType = UInt64
     typealias SwiftType = UInt64
@@ -991,6 +1007,8 @@ public protocol IdKitBuilderProtocol: AnyObject, Sendable {
      */
     func constraints(constraints: ConstraintNode) throws  -> IdKitRequestWrapper
     
+    func matchIdentityAttributes(identityAttributes: [IdentityAttribute], requireFaceAuth: Bool)  -> IdKitBuilder
+    
     /**
      * Creates a `BridgeConnection` from a preset (works for all request types)
      *
@@ -1101,6 +1119,16 @@ open func constraints(constraints: ConstraintNode)throws  -> IdKitRequestWrapper
     uniffi_idkit_fn_method_idkitbuilder_constraints(
             self.uniffiCloneHandle(),
         FfiConverterTypeConstraintNode_lower(constraints),$0
+    )
+})
+}
+    
+open func matchIdentityAttributes(identityAttributes: [IdentityAttribute], requireFaceAuth: Bool) -> IdKitBuilder  {
+    return try!  FfiConverterTypeIDKitBuilder_lift(try! rustCall() {
+    uniffi_idkit_fn_method_idkitbuilder_match_identity_attributes(
+            self.uniffiCloneHandle(),
+        FfiConverterSequenceTypeIdentityAttribute.lower(identityAttributes),
+        FfiConverterBool.lower(requireFaceAuth),$0
     )
 })
 }
@@ -2518,6 +2546,144 @@ public func FfiConverterTypeEnvironment_lower(_ value: Environment) -> RustBuffe
 }
 
 
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+/**
+ * A single identity attribute criterion for identity attestation.
+ *
+ * Each variant carries the expected value for that attribute.
+ * Numeric variants (`MinimumAge`, `Sex`) serialize their value as a JSON integer;
+ * all other variants serialize as a JSON string.
+ *
+ * Wire format: `{"type": "minimum_age", "value": 18}`
+ */
+
+public enum IdentityAttribute: Equatable, Hashable {
+    
+    /**
+     * Document type (e.g., "passport", "`id_card`")
+     */
+    case documentType(String
+    )
+    /**
+     * Document number
+     */
+    case documentNumber(String
+    )
+    /**
+     * Issuing country (ISO 3166-1 alpha-3, e.g., "JPN")
+     */
+    case issuingCountry(String
+    )
+    /**
+     * Full name as it appears on the document
+     */
+    case fullName(String
+    )
+    /**
+     * Minimum age in years
+     */
+    case minimumAge(UInt8
+    )
+    /**
+     * Nationality (ISO 3166-1 alpha-3, e.g., "JPN")
+     */
+    case nationality(String
+    )
+
+
+
+}
+
+#if compiler(>=6)
+extension IdentityAttribute: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeIdentityAttribute: FfiConverterRustBuffer {
+    typealias SwiftType = IdentityAttribute
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> IdentityAttribute {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .documentType(try FfiConverterString.read(from: &buf)
+        )
+        
+        case 2: return .documentNumber(try FfiConverterString.read(from: &buf)
+        )
+        
+        case 3: return .issuingCountry(try FfiConverterString.read(from: &buf)
+        )
+        
+        case 4: return .fullName(try FfiConverterString.read(from: &buf)
+        )
+        
+        case 5: return .minimumAge(try FfiConverterUInt8.read(from: &buf)
+        )
+        
+        case 6: return .nationality(try FfiConverterString.read(from: &buf)
+        )
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: IdentityAttribute, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case let .documentType(v1):
+            writeInt(&buf, Int32(1))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .documentNumber(v1):
+            writeInt(&buf, Int32(2))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .issuingCountry(v1):
+            writeInt(&buf, Int32(3))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .fullName(v1):
+            writeInt(&buf, Int32(4))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .minimumAge(v1):
+            writeInt(&buf, Int32(5))
+            FfiConverterUInt8.write(v1, into: &buf)
+            
+        
+        case let .nationality(v1):
+            writeInt(&buf, Int32(6))
+            FfiConverterString.write(v1, into: &buf)
+            
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeIdentityAttribute_lift(_ buf: RustBuffer) throws -> IdentityAttribute {
+    return try FfiConverterTypeIdentityAttribute.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeIdentityAttribute_lower(_ value: IdentityAttribute) -> RustBuffer {
+    return FfiConverterTypeIdentityAttribute.lower(value)
+}
+
+
 
 public enum IdkitError: Swift.Error, Equatable, Hashable, Foundation.LocalizedError {
 
@@ -2897,7 +3063,10 @@ public enum ResponseItem: Equatable, Hashable {
          */nullifier: String, 
         /**
          * Minimum expiration timestamp for the proof
-         */expiresAtMin: UInt64
+         */expiresAtMin: UInt64, 
+        /**
+         * Identity attestation result (present only when identity matching was requested)
+         */identityAttestation: Bool?
     )
     /**
      * Session proof (World ID v4 sessions)
@@ -2928,7 +3097,10 @@ public enum ResponseItem: Equatable, Hashable {
          */sessionNullifier: [String], 
         /**
          * Minimum expiration timestamp for the proof
-         */expiresAtMin: UInt64
+         */expiresAtMin: UInt64, 
+        /**
+         * Identity attestation result (present only when identity matching was requested)
+         */identityAttestation: Bool?
     )
     /**
      * Protocol version 3.0 (World ID v3 - legacy format)
@@ -2948,7 +3120,10 @@ public enum ResponseItem: Equatable, Hashable {
          */merkleRoot: String, 
         /**
          * Nullifier (hex string)
-         */nullifier: String
+         */nullifier: String, 
+        /**
+         * Identity attestation result (present only when identity matching was requested)
+         */identityAttestation: Bool?
     )
 
 
@@ -2969,13 +3144,13 @@ public struct FfiConverterTypeResponseItem: FfiConverterRustBuffer {
         let variant: Int32 = try readInt(&buf)
         switch variant {
         
-        case 1: return .v4(identifier: try FfiConverterString.read(from: &buf), signalHash: try FfiConverterOptionString.read(from: &buf), issuerSchemaId: try FfiConverterUInt64.read(from: &buf), proof: try FfiConverterSequenceString.read(from: &buf), nullifier: try FfiConverterString.read(from: &buf), expiresAtMin: try FfiConverterUInt64.read(from: &buf)
+        case 1: return .v4(identifier: try FfiConverterString.read(from: &buf), signalHash: try FfiConverterOptionString.read(from: &buf), issuerSchemaId: try FfiConverterUInt64.read(from: &buf), proof: try FfiConverterSequenceString.read(from: &buf), nullifier: try FfiConverterString.read(from: &buf), expiresAtMin: try FfiConverterUInt64.read(from: &buf), identityAttestation: try FfiConverterOptionBool.read(from: &buf)
         )
         
-        case 2: return .session(identifier: try FfiConverterString.read(from: &buf), signalHash: try FfiConverterOptionString.read(from: &buf), issuerSchemaId: try FfiConverterUInt64.read(from: &buf), proof: try FfiConverterSequenceString.read(from: &buf), sessionNullifier: try FfiConverterSequenceString.read(from: &buf), expiresAtMin: try FfiConverterUInt64.read(from: &buf)
+        case 2: return .session(identifier: try FfiConverterString.read(from: &buf), signalHash: try FfiConverterOptionString.read(from: &buf), issuerSchemaId: try FfiConverterUInt64.read(from: &buf), proof: try FfiConverterSequenceString.read(from: &buf), sessionNullifier: try FfiConverterSequenceString.read(from: &buf), expiresAtMin: try FfiConverterUInt64.read(from: &buf), identityAttestation: try FfiConverterOptionBool.read(from: &buf)
         )
         
-        case 3: return .v3(identifier: try FfiConverterString.read(from: &buf), signalHash: try FfiConverterOptionString.read(from: &buf), proof: try FfiConverterString.read(from: &buf), merkleRoot: try FfiConverterString.read(from: &buf), nullifier: try FfiConverterString.read(from: &buf)
+        case 3: return .v3(identifier: try FfiConverterString.read(from: &buf), signalHash: try FfiConverterOptionString.read(from: &buf), proof: try FfiConverterString.read(from: &buf), merkleRoot: try FfiConverterString.read(from: &buf), nullifier: try FfiConverterString.read(from: &buf), identityAttestation: try FfiConverterOptionBool.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -2986,7 +3161,7 @@ public struct FfiConverterTypeResponseItem: FfiConverterRustBuffer {
         switch value {
         
         
-        case let .v4(identifier,signalHash,issuerSchemaId,proof,nullifier,expiresAtMin):
+        case let .v4(identifier,signalHash,issuerSchemaId,proof,nullifier,expiresAtMin,identityAttestation):
             writeInt(&buf, Int32(1))
             FfiConverterString.write(identifier, into: &buf)
             FfiConverterOptionString.write(signalHash, into: &buf)
@@ -2994,9 +3169,10 @@ public struct FfiConverterTypeResponseItem: FfiConverterRustBuffer {
             FfiConverterSequenceString.write(proof, into: &buf)
             FfiConverterString.write(nullifier, into: &buf)
             FfiConverterUInt64.write(expiresAtMin, into: &buf)
+            FfiConverterOptionBool.write(identityAttestation, into: &buf)
             
         
-        case let .session(identifier,signalHash,issuerSchemaId,proof,sessionNullifier,expiresAtMin):
+        case let .session(identifier,signalHash,issuerSchemaId,proof,sessionNullifier,expiresAtMin,identityAttestation):
             writeInt(&buf, Int32(2))
             FfiConverterString.write(identifier, into: &buf)
             FfiConverterOptionString.write(signalHash, into: &buf)
@@ -3004,15 +3180,17 @@ public struct FfiConverterTypeResponseItem: FfiConverterRustBuffer {
             FfiConverterSequenceString.write(proof, into: &buf)
             FfiConverterSequenceString.write(sessionNullifier, into: &buf)
             FfiConverterUInt64.write(expiresAtMin, into: &buf)
+            FfiConverterOptionBool.write(identityAttestation, into: &buf)
             
         
-        case let .v3(identifier,signalHash,proof,merkleRoot,nullifier):
+        case let .v3(identifier,signalHash,proof,merkleRoot,nullifier,identityAttestation):
             writeInt(&buf, Int32(3))
             FfiConverterString.write(identifier, into: &buf)
             FfiConverterOptionString.write(signalHash, into: &buf)
             FfiConverterString.write(proof, into: &buf)
             FfiConverterString.write(merkleRoot, into: &buf)
             FfiConverterString.write(nullifier, into: &buf)
+            FfiConverterOptionBool.write(identityAttestation, into: &buf)
             
         }
     }
@@ -3276,6 +3454,30 @@ fileprivate struct FfiConverterOptionUInt64: FfiConverterRustBuffer {
 #if swift(>=5.8)
 @_documentation(visibility: private)
 #endif
+fileprivate struct FfiConverterOptionBool: FfiConverterRustBuffer {
+    typealias SwiftType = Bool?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterBool.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterBool.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
     typealias SwiftType = String?
 
@@ -3414,6 +3616,31 @@ fileprivate struct FfiConverterSequenceTypeConstraintNode: FfiConverterRustBuffe
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterTypeConstraintNode.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+fileprivate struct FfiConverterSequenceTypeIdentityAttribute: FfiConverterRustBuffer {
+    typealias SwiftType = [IdentityAttribute]
+
+    public static func write(_ value: [IdentityAttribute], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeIdentityAttribute.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [IdentityAttribute] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [IdentityAttribute]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeIdentityAttribute.read(from: &buf))
         }
         return seq
     }
@@ -3595,6 +3822,9 @@ private let initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_idkit_checksum_method_idkitbuilder_constraints() != 39401) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_idkit_checksum_method_idkitbuilder_match_identity_attributes() != 16828) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_idkit_checksum_method_idkitbuilder_preset() != 40472) {

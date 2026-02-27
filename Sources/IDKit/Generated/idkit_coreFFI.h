@@ -373,6 +373,11 @@ uint64_t uniffi_idkit_fn_constructor_idkitbuilder_from_request(RustBuffer config
 uint64_t uniffi_idkit_fn_method_idkitbuilder_constraints(uint64_t ptr, uint64_t constraints, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_IDKIT_FN_METHOD_IDKITBUILDER_MATCH_IDENTITY_ATTRIBUTES
+#define UNIFFI_FFIDEF_UNIFFI_IDKIT_FN_METHOD_IDKITBUILDER_MATCH_IDENTITY_ATTRIBUTES
+uint64_t uniffi_idkit_fn_method_idkitbuilder_match_identity_attributes(uint64_t ptr, RustBuffer identity_attributes, int8_t require_face_auth, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_IDKIT_FN_METHOD_IDKITBUILDER_PRESET
 #define UNIFFI_FFIDEF_UNIFFI_IDKIT_FN_METHOD_IDKITBUILDER_PRESET
 uint64_t uniffi_idkit_fn_method_idkitbuilder_preset(uint64_t ptr, RustBuffer preset, RustCallStatus *_Nonnull out_status
@@ -865,6 +870,12 @@ uint16_t uniffi_idkit_checksum_method_credentialrequest_to_json(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_IDKIT_CHECKSUM_METHOD_IDKITBUILDER_CONSTRAINTS
 #define UNIFFI_FFIDEF_UNIFFI_IDKIT_CHECKSUM_METHOD_IDKITBUILDER_CONSTRAINTS
 uint16_t uniffi_idkit_checksum_method_idkitbuilder_constraints(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_IDKIT_CHECKSUM_METHOD_IDKITBUILDER_MATCH_IDENTITY_ATTRIBUTES
+#define UNIFFI_FFIDEF_UNIFFI_IDKIT_CHECKSUM_METHOD_IDKITBUILDER_MATCH_IDENTITY_ATTRIBUTES
+uint16_t uniffi_idkit_checksum_method_idkitbuilder_match_identity_attributes(void
     
 );
 #endif
